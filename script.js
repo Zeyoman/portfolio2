@@ -1,113 +1,68 @@
-document.addEventListener('DOMContentLoaded', function() {
-    animationLoadedFirst();
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    document.querySelectorAll(".marquee").forEach(marquee => {
-        const content = marquee.querySelector(".marquee-content");
-        const clone = content.cloneNode(true);
-        content.parentElement.appendChild(clone);
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver(
+        (entries, obs) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => entry.target.classList.add('visible'), i * 60);
+                    obs.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
+    );
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    document.querySelectorAll('.marquee').forEach(m => {
+        const content = m.querySelector('.marquee-content');
+        if (!content) return;
+        content.appendChild(content.cloneNode(true));
     });
 
-    const textElement = document.getElementById("changeNameToPseudo");
-    const originalText = textElement.textContent;
-    const newText = "Zeyoman";
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-    var numberPage = 0;
-
-    textElement.addEventListener("mouseenter", () => {
-        hackAnimation(newText, originalText, characters, textElement);
-    });
-
-    document.querySelectorAll(".change").forEach(element => {
-        element.addEventListener("click", () => {
-            numberPage += 1;
-            numberActualPage = numberPage - 1;
-            numberNextPage = numberPage;
-
-            actualPage = document.getElementsByTagName("body")[0].children[numberActualPage];
-            nextPage = document.getElementsByTagName("body")[0].children[numberNextPage];
-
-            actualPage.classList.add("-translate-y-full");
-
-            nextPage.classList.add("translate-y-full")
-            nextPage.classList.remove("hidden");
-
+    const rotator = document.getElementById('roleRotator');
+    if (rotator) {
+        const roles = ['full-stack', 'front-end', 'créatif', 'curieux'];
+        let idx = 0;
+        setInterval(() => {
+            rotator.style.opacity = '0';
+            rotator.style.transform = 'translateY(-6px)';
+            rotator.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             setTimeout(() => {
-                actualPage.classList.remove("-translate-y-full");
-                actualPage.classList.add("hidden");
+                idx = (idx + 1) % roles.length;
+                rotator.textContent = roles[idx];
+                rotator.style.opacity = '1';
+                rotator.style.transform = 'translateY(0)';
+            }, 320);
+        }, 2800);
+    }
 
-                nextPage.classList.add("translate-y-0");
-            }, 1000);
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', e => {
+            const id = anchor.getAttribute('href');
+            if (id.length <= 1) return;
+            const target = document.querySelector(id);
+            if (!target) return;
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 
-    var clickNo_WhyHeSaidNo = 0;
-    var scaleButtonNo = 1;
-    var changeTextValue = false;
-    
-    document.getElementById("randomButton").addEventListener("click", function () {
-        clickNo_WhyHeSaidNo += 1;
-
-        const buttonContainer = document.getElementById("buttonContainer");
-        const button = document.getElementById("randomButton");
-        const titleContainerButton = document.getElementById("titleButtonProfilText");
-
-        buttonContainer.style.position = "absolute";
-        buttonContainer.style.top = "0px";
-        buttonContainer.style.left = "0px";
-
-        // Taille de la fenêtre et du bouton
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const buttonWidth = button.offsetWidth;
-        const buttonHeight = button.offsetHeight;
-
-        // Générer des positions aléatoires en gardant le bouton dans l'écran
-        const maxX = screenWidth - buttonWidth;
-        const maxY = screenHeight - buttonHeight;
-        const randomX = Math.random() * maxX;
-        const randomY = Math.random() * maxY;
-
-        if (clickNo_WhyHeSaidNo >= 3){
-            scaleButtonNo *=  0.9;
-            buttonContainer.style.transform = `translate(${randomX}px, ${randomY}px) scale(${scaleButtonNo})`;
-            if(clickNo_WhyHeSaidNo >= 10 && changeTextValue == 0){
-                titleContainerButton.innerText = "Ça fait beaucoup la non ? >:|";
-                changeTextValue = true;
-            }
-        } else {
-            buttonContainer.style.transform = `translate(${randomX}px, ${randomY}px)`;
-        }
-    });
-});
-
-function animationLoadedFirst(){
-    const titleAnimation = document.querySelector(".shrinkTitleAppear");
-    const textAnimation = document.querySelectorAll(".shrinkTextAppear");
-    titleAnimation.classList.add("appear");
-    textAnimation.forEach(element => {
-        element.classList.add("appear"); 
-    });
-}
-
-function hackAnimation(newText, originalText, characters, element){
-    let iterations = 0;
-    const interval = setInterval(() => {
-        // valeur du truc 1
-        element.textContent = newText
-            .split("")
-            .map((char, index) => {
-                if (index < iterations) {
-                    // valeur du truc 2
-                    return newText[index];
+    const sections = document.querySelectorAll('main section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const navObserver = new IntersectionObserver(
+        entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    navLinks.forEach(l => {
+                        l.classList.toggle('text-white', l.getAttribute('href') === `#${id}`);
+                    });
                 }
-                return characters[Math.floor(Math.random() * characters.length)];
-            })
-            .join("");
-
-        if (iterations >= originalText.length) {
-            clearInterval(interval);
-        }
-        // vitesse du truc
-        iterations += 1 / 3;
-    }, 50);
-}
+            });
+        },
+        { threshold: 0.3 }
+    );
+    sections.forEach(s => navObserver.observe(s));
+});
